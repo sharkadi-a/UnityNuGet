@@ -1,0 +1,24 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${{ vars.PROJECT_NAME }}:latest --tag ghcr.io/${{ github.repository_owner }}/${{ vars.PROJECT_NAME }}:${{ github.run_number }}.${{ github.run_attempt }} --tag ghcr.io/${{ github.repository_owner }}/${{ vars.PROJECT_NAME }}:latest
+      
+    - name: Auth into Docker
+      run: command echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+    
+    - name: Push into Docker Repository
+      run: docker push ghcr.io/sharkadi-a/${{ vars.PROJECT_NAME }}
